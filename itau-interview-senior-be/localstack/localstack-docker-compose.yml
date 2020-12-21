@@ -1,0 +1,37 @@
+version: '3.5'
+
+services:
+  localstack:
+    image: localstack/localstack:0.11.3
+    ports:
+      - '4566:4566'   # LocalStack Edge
+      - '4567:4567'   # apigateway
+      - '4568:4568'   # kinesis
+      - '4569:4569'   # dynamodb
+      - '4572:4572'   # s3
+      - '4573:4573'   # firehose
+      - '4574:4574'   # lambda
+      - '4575:4575'   # sns
+      - '4576:4576'   # sqs
+      - '4577:4577'   # redshift
+      - '4578:4578'   # es
+      - '4579:4579'   # ses
+      - '4580:4580'   # route53
+      - '4581:4581'   # cloudformation
+      - '4582:4582'   # cloudwatch
+      - '4583:4583'   # ssm
+      - '4584:4584'   # secretsmanager
+      - '4585:4585'   # stepfunctions
+      - '4592:4592'   # sts
+      - '4593:4593'   # iam
+      - '4597:4597'   # ec2
+      - '8055:8080'   # LocalStack Console
+    environment:
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - AWS_ACCESS_KEY_ID=dummy
+      - AWS_SECRET_ACCESS_KEY=dummy
+      - AWS_REGION='us-west-2'
+    volumes:
+      - './.localstack:/tmp/localstack'
+      - '/var/run/docker.sock:/var/run/docker.sock'

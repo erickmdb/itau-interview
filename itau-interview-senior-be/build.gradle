@@ -1,0 +1,87 @@
+  
+import com.amazonaws.services.dynamodbv2.model.AttributeDefinition
+import com.amazonaws.services.dynamodbv2.model.KeySchemaElement
+import com.amazonaws.services.dynamodbv2.model.KeyType
+import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType
+import com.nike.pdm.localstack.aws.dynamodb.CreateDynamoDbTableTask
+import com.nike.pdm.localstack.aws.s3.CreateS3BucketsTask
+import com.nike.pdm.localstack.aws.sns.CreateSnsTopicWithSqsEndpointTask
+import com.nike.pdm.localstack.aws.sqs.CreateSqsQueueWithDlqTask
+
+plugins {
+	id 'org.springframework.boot' version '2.3.7.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+	id 'java'
+    id "com.avast.gradle.docker-compose"    version "0.12.1"
+	id "com.nike.pdm.localstack"    version "0.1.0"
+	id "eclipse"
+}
+
+group = 'com.br.erickmdb'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	compile "com.amazonaws:aws-java-sdk-dynamodb:1.11.831"
+	compile "com.github.derjust:spring-data-dynamodb:5.1.0"
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	implementation "com.amazonaws:aws-java-sdk-dynamodb"
+	testImplementation('org.springframework.boot:spring-boot-starter-test') {
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+	}
+}
+
+
+
+test {
+	useJUnitPlatform()
+}
+
+// Spring Boot Configuration
+bootRun {
+    jvmArgs = ['-Dspring.profiles.active=local']
+}
+
+// LocalStack Configuration
+dockerCompose {
+    useComposeFiles = [ 'localstack/localstack-docker-compose.yml' ]
+}
+
+localstack {
+    host = 'localhost'
+    port = 4566
+    signingRegion = 'us-east-1'
+
+    springboot {
+        profiles = [ 'local' ]
+    }
+}
+
+task setupLocalTable(type: CreateDynamoDbTableTask) {
+    tableName = 'employee'
+    keySchema = [
+            new KeySchemaElement("id", KeyType.HASH)
+    ]
+    attributeDefinitions = [
+            new AttributeDefinition("id", ScalarAttributeType.S)
+    ]
+    initializer = 'com.br.erickmdb.employee.initializer.EmployeeTableInitializer'
+}
+
+
+task setupS3Bucket(type: CreateS3BucketsTask) {
+    buckets = [ 'employee-bucket' ]
+}
